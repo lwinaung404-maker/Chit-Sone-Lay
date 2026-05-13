@@ -1,94 +1,182 @@
-import { Component, viewChild, ElementRef, signal, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
-import { ActivatedRoute, Router } from '@angular/router';
-import { gsap } from 'gsap';
-import confetti from 'canvas-confetti';
-
-@Component({
-  selector: 'app-home',
-  standalone: true,
-  imports: [CommonModule],
-  templateUrl: './home.component.html',
-  styleUrls: ['./home.component.css']
-})
-export class HomeComponent implements OnInit {
-  private http = inject(HttpClient);
-  private route = inject(ActivatedRoute);
-  private router = inject(Router);
-
-  maskRect = viewChild<ElementRef>('maskRect');
-  loveMessage = viewChild<ElementRef>('loveMessage');
-  
-  mainMessage = signal<string>('');
-  statusText = signal('လက်ဗွေရာတင်ပါ');
-  percent = signal(0);
-  tl?: gsap.core.Timeline;
-
-  ngOnInit() {
-    const targetId = this.route.snapshot.paramMap.get('id');
-
-    // public/customers.json ကို ဖတ်မယ်
-    this.http.get<any[]>('/customers.json').subscribe({
-      next: (data) => {
-        const found = data.find(c => c.id === targetId);
-        if (found) {
-          this.mainMessage.set(found.mainMessage);
-        } else {
-          // ID ရှာမတွေ့ရင် NotFound ကို ပို့မယ်
-          this.router.navigate(['/']); 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Surprise For You</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #fce4ec;
+            font-family: 'Pyidaungsu', sans-serif;
+            overflow: hidden;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
-      },
-      error: () => this.router.navigate(['/'])
-    });
-  }
 
-  onStartPress(event: Event) {
-    if (event.cancelable) event.preventDefault();
-    this.statusText.set('ခဏစောင့်ပါ...');
+        /* အသည်းပုံ */
+        .heart-container {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            margin-bottom: 20px;
+        }
 
-    if (this.tl) this.tl.kill();
+        .heart-shape {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+            clip-path: path('M75 130c-1.5 0-3-.5-4-1.5C50 110 10 75 10 45 10 25 25 10 45 10c12 0 23 6 30 16 7-10 18-16 30-16 20 0 35 15 35 35 0 30-40 65-61 83.5-1 1-2.5 1.5-4 1.5z');
+        }
 
-    this.tl = gsap.timeline({
-      onUpdate: () => this.percent.set(Math.round(this.tl!.progress() * 100)),
-      onComplete: () => this.showLoveMessage()
-    });
+        .heart-fill {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 0%;
+            background: linear-gradient(to top, #ff1744, #f44336);
+            transition: height 0.05s linear;
+        }
 
-    this.tl.to(this.maskRect()?.nativeElement, {
-      attr: { y: 0 },
-      duration: 3,
-      ease: "power1.inOut"
-    });
-  }
+        /* ပုံထဲကလို လက်ဗွေရာခလုတ် (Fingerprint Button) */
+        .fingerprint-btn {
+            width: 80px;
+            height: 80px;
+            background-color: #ffffff;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            cursor: pointer;
+            font-size: 40px;
+            margin-top: 20px;
+            transition: transform 0.1s;
+        }
 
-  onEndPress() {
-    if (this.tl && this.tl.progress() < 1) {
-      this.tl.reverse();
-      this.statusText.set('လက်ဗွေရာတင်ပါ');
-    }
-  }
+        .fingerprint-btn:active {
+            transform: scale(0.9);
+            background-color: #f8f9fa;
+        }
 
-  showLoveMessage() {
-    this.statusText.set('COMPLETED');
-    this.launchConfetti();
+        .percentage {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff1744;
+            margin-bottom: 10px;
+        }
 
-    gsap.to(this.loveMessage()?.nativeElement, {
-      opacity: 1,
-      y: -10,
-      scale: 1,
-      duration: 0.8,
-      ease: "back.out(1.7)"
-    });
-  }
+        .status-text {
+            margin-top: 10px;
+            color: #888;
+            font-size: 16px;
+        }
 
-  launchConfetti() {
-    const end = Date.now() + 3000;
-    const colors = ['#FF0000', '#D00000', '#FF4D4D'];
+        #message {
+            position: absolute;
+            bottom: 15%;
+            font-size: 24px;
+            font-weight: bold;
+            color: #d81b60;
+            display: none;
+            text-align: center;
+            animation: fadeIn 0.8s ease-out;
+        }
 
-    (function frame() {
-      confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0, y: 0.8 }, colors });
-      confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1, y: 0.8 }, colors });
-      if (Date.now() < end) requestAnimationFrame(frame);
-    }());
-  }
-}
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes heartbeat {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="percentage" id="percentText">0%</div>
+
+    <div class="heart-container">
+        <div class="heart-shape">
+            <div class="heart-fill" id="fill"></div>
+        </div>
+    </div>
+
+    <div class="fingerprint-btn" id="pressBtn">
+        ☝️
+    </div>
+
+    <div class="status-text" id="statusText">လက်ဗွေရာတင်ပါ</div>
+
+    <div id="message">
+        မင်းကိုအရမ်းချစ်တယ်နော် ❤️
+    </div>
+
+    <script>
+        let percent = 0;
+        let timer;
+        const fill = document.getElementById('fill');
+        const percentText = document.getElementById('percentText');
+        const message = document.getElementById('message');
+        const pressBtn = document.getElementById('pressBtn');
+        const statusText = document.getElementById('statusText');
+
+        function startFilling(e) {
+            e.preventDefault();
+            statusText.innerText = "ခဏစောင့်ပါ...";
+            
+            timer = setInterval(() => {
+                if (percent < 100) {
+                    percent++;
+                    fill.style.height = percent + '%';
+                    percentText.innerText = percent + '%';
+                } else {
+                    clearInterval(timer);
+                    showSuccess();
+                }
+            }, 40);
+        }
+
+        function stopFilling() {
+            clearInterval(timer);
+            if (percent < 100) {
+                // လက်လွှတ်လိုက်ရင် အရောင်ပြန်လျော့သွားမယ်
+                timer = setInterval(() => {
+                    if (percent > 0) {
+                        percent--;
+                        fill.style.height = percent + '%';
+                        percentText.innerText = percent + '%';
+                    } else {
+                        clearInterval(timer);
+                        statusText.innerText = "လက်ဗွေရာတင်ပါ";
+                    }
+                }, 10);
+            }
+        }
+
+        function showSuccess() {
+            percentText.style.display = 'none';
+            pressBtn.style.display = 'none';
+            statusText.style.display = 'none';
+            message.style.display = 'block';
+            document.querySelector('.heart-container').style.animation = 'heartbeat 0.6s infinite alternate';
+        }
+
+        // ခလုတ်ကို ဖိထားတဲ့ Event များ
+        pressBtn.addEventListener('mousedown', startFilling);
+        window.addEventListener('mouseup', stopFilling);
+
+        pressBtn.addEventListener('touchstart', startFilling);
+        window.addEventListener('touchend', stopFilling);
+
+    </script>
+</body>
+</html>
