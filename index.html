@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Designer Portfolio</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f1f1f1;
+            font-family: 'Pyidaungsu', sans-serif;
+            overflow: hidden;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* --- Hacker Screen Style (ID မပါရင် ပေါ်မယ့်အပိုင်း) --- */
+        .hacker-container {
+            display: none;
+            width: 90%;
+            max-width: 400px;
+            background: white;
+            padding: 30px 20px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .hacker-container img {
+            width: 200px;
+            height: 200px;
+            border-radius: 15px;
+            object-fit: cover;
+            margin-bottom: 20px;
+        }
+
+        .hacker-container h2 {
+            color: #d32f2f;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .hacker-container p {
+            color: #555;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .warning-box {
+            background: #fff9c4;
+            border-left: 5px solid #fbc02d;
+            padding: 15px;
+            margin: 20px 0;
+            font-style: italic;
+            text-align: left;
+        }
+
+        .retry-btn {
+            background: #616161;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* --- Main Heart Game Style --- */
+        #mainGame {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .heart-container {
+            position: relative;
+            width: 160px;
+            height: 160px;
+            margin-bottom: 20px;
+        }
+
+        .heart-shape {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+            clip-path: path('M80 140c-1.6 0-3.2-.5-4.3-1.6C53 118 10 81 10 48 10 27 26 11 47 11c13 0 25 7 33 17 8-10 20-17 33-17 21 0 37 16 37 37 0 33-43 70-66 90.4-1.1 1.1-2.7 1.6-4.3 1.6z');
+        }
+
+        .heart-fill {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 0%;
+            background: linear-gradient(to top, #ff1744, #f44336);
+            transition: height 0.05s linear;
+        }
+
+        .fingerprint-btn {
+            width: 80px;
+            height: 80px;
+            background-color: #ffffff;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            cursor: pointer;
+            font-size: 35px;
+            margin-top: 20px;
+        }
+
+        .percentage {
+            font-size: 26px;
+            font-weight: bold;
+            color: #ff1744;
+            margin-bottom: 10px;
+        }
+
+        #message {
+            display: none;
+            font-size: 22px;
+            font-weight: bold;
+            color: #d81b60;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="hackerScreen" class="hacker-container">
+        <img src="https://i.pinimg.com/originals/f3/9d/d0/f39dd06e098670d8a9e670d89e11f5a9.jpg" id="memeImg" alt="Funny Face">
+        
+        <h2>Scan ကို ခိုးဖတ်ဖို့ မကြိုးစားပါနဲ့တော့...</h2>
+        <p style="color: #d32f2f; font-weight: bold;">ထပ်မိပြန်ပြီ အမှတ်မရှိ အရှက်မရှိဘူးနော် ✋</p>
+        <p>ခင်ဗျား ဒီနေရာကို ဘယ်လိုရောက်လာတာလဲ?</p>
+
+        <div class="warning-box">
+            " ဟက်ကာကြီး လုပ်မလို့လား? ခဏနေဦး.. ထမင်းစားလိုက်ဦးမယ်။ "
+        </div>
+
+        <button class="retry-btn" onclick="location.reload()">နောက်တစ်ခါ ထပ်ဖတ်မယ်</button>
+    </div>
+
+    <div id="mainGame">
+        <div class="percentage" id="percentText">0%</div>
+        <div class="heart-container">
+            <div class="heart-shape"><div class="heart-fill" id="fill"></div></div>
+        </div>
+        <div class="fingerprint-btn" id="pressBtn">☝️</div>
+        <p id="statusLabel">လက်ဗွေရာတင်ပါ</p>
+        <div id="message">မိန်းမကိုအရမ်းချစ်တယ်နော် ❤️</div>
+    </div>
+
+    <script>
+        // URL မှာ ?id=love ပါမပါ စစ်မယ်
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('id');
+
+        if (id === 'love') {
+            document.getElementById('mainGame').style.display = 'flex';
+            document.body.style.backgroundColor = "#fce4ec"; // ပန်းရောင်ပြောင်းမယ်
+        } else {
+            document.getElementById('hackerScreen').style.display = 'block';
+        }
+
+        // Game Logic
+        let percent = 0;
+        let timer;
+        const fill = document.getElementById('fill');
+        const percentText = document.getElementById('percentText');
+        const pressBtn = document.getElementById('pressBtn');
+        const statusLabel = document.getElementById('statusLabel');
+
+        function start() {
+            clearInterval(timer);
+            statusLabel.innerText = "ခဏစောင့်ပါ...";
+            timer = setInterval(() => {
+                if (percent < 100) {
+                    percent++;
+                    fill.style.height = percent + '%';
+                    percentText.innerText = percent + '%';
+                } else {
+                    clearInterval(timer);
+                    document.getElementById('message').style.display = 'block';
+                    pressBtn.style.display = 'none';
+                    statusLabel.style.display = 'none';
+                }
+            }, 40);
+        }
+
+        function stop() {
+            clearInterval(timer);
+            if (percent < 100) {
+                timer = setInterval(() => {
+                    if (percent > 0) {
+                        percent--;
+                        fill.style.height = percent + '%';
+                        percentText.innerText = percent + '%';
+                    } else {
+                        clearInterval(timer);
+                        statusLabel.innerText = "လက်ဗွေရာတင်ပါ";
+                    }
+                }, 10);
+            }
+        }
+
+        pressBtn.addEventListener('mousedown', start);
+        window.addEventListener('mouseup', stop);
+        pressBtn.addEventListener('touchstart', (e) => { e.preventDefault(); start(); });
+        window.addEventListener('touchend', stop);
+    </script>
+</body>
+</html>
